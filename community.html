@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community — Legit Fuoye</title>
+  <link rel="icon" href="logo/logo.jpg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <a class="nav-brand" href="index.html">
+      <img src="logo/logo.jpg" alt="Logo"><span>Legit Fuoye</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="news.html">News</a></li>
+      <li><a href="community.html" class="active">Community</a></li>
+      <li><a href="cbt.html">CBT</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li id="nav-auth"><a href="login.html" class="btn-green" style="padding:7px 16px">Login</a></li>
+    </ul>
+  </nav>
+
+  <main class="container container-narrow">
+    <div class="page-header">
+      <h1>💬 Community Feed</h1>
+    </div>
+
+    <div id="compose-box" class="post-form hidden">
+      <h3 class="mb-2">Share an update</h3>
+      <form id="compose-form">
+        <div class="form-group"><label>Title</label><input id="c-title" required></div>
+        <div class="form-group"><label>Message</label><textarea id="c-msg" required></textarea></div>
+        <div class="form-group"><label>Media (optional)</label><input type="file" id="c-file" accept="image/*,video/*"></div>
+        <button class="btn-green" id="c-btn" type="submit">Post</button>
+      </form>
+    </div>
+
+    <div id="compose-login" class="card hidden">
+      <p><a href="login.html" class="btn-green">Log in to post</a></p>
+    </div>
+
+    <div id="feed">
+      <div class="card loading-block"><span class="spinner spinner-dark"></span> Loading…</div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 <strong>FUOYE Gist</strong>. Built for excellence.</p>
+    <p>Federal University Oye-Ekiti, Ekiti State, Nigeria</p>
+    <p><a href="contact.html">📞 Contact Us</a></p>
+  </footer>
+
+  <script type="module" src="js/community.js"></script>
+</body>
+</html>

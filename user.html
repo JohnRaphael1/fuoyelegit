@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Legit Fuoye</title>
+  <link rel="icon" href="logo/logo.jpg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <nav class="navbar"></nav>
+
+  <div class="dash-wrap">
+    <aside class="dash-sidebar">
+      <h3>My Account</h3>
+      <ul class="dash-nav" id="user-nav">
+        <li><a data-section="profile" class="active"><span class="ico">👤</span> Profile</a></li>
+        <li><a data-section="my-posts"><span class="ico">📝</span> My Posts</a></li>
+        <li><a data-section="notifications"><span class="ico">🔔</span> Notifications</a></li>
+        <li><a data-section="logout"><span class="ico">🚪</span> Logout</a></li>
+      </ul>
+    </aside>
+
+    <main class="dash-main">
+      <div class="dash-topbar">
+        <h1 id="page-title">Profile</h1>
+      </div>
+      <div id="section-content">
+        <div class="loading-block"><span class="spinner spinner-dark"></span> Loading…</div>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 <strong>FUOYE Gist</strong>. Built for excellence.</p>
+    <p>Federal University Oye-Ekiti, Ekiti State, Nigeria</p>
+  </footer>
+
+  <script type="module" src="js/user.js"></script>
+</body>
+</html>

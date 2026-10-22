@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Legit Fuoye</title>
+  <link rel="icon" href="logo/logo.jpg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <nav class="navbar"></nav>
+
+  <div class="dash-wrap">
+    <!-- SIDEBAR -->
+    <aside class="dash-sidebar">
+      <h3>Admin Panel</h3>
+      <ul class="dash-nav" id="admin-nav">
+        <li><a data-section="profile"       class="active"><span class="ico">👤</span> Profile</a></li>
+        <li><a data-section="create-user"><span class="ico">➕</span> Create User</a></li>
+        <li><a data-section="view-users"><span class="ico">👥</span> View Users</a></li>
+        <li><a data-section="create-news"><span class="ico">📰</span> Create News</a></li>
+        <li><a data-section="manage-news"><span class="ico">🗞️</span> Manage News</a></li>
+        <li><a data-section="create-community"><span class="ico">💬</span> Create Update</a></li>
+        <li><a data-section="manage-community"><span class="ico">🧵</span> Manage Updates</a></li>
+        <li><a data-section="cbt"><span class="ico">📝</span> CBT Manager</a></li>
+        <li><a data-section="contacts"><span class="ico">📞</span> Contacts</a></li>
+        <li><a data-section="logout"><span class="ico">🚪</span> Logout</a></li>
+      </ul>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="dash-main">
+      <div class="dash-topbar">
+        <h1 id="page-title">Profile</h1>
+        <div class="bell-wrap" id="bell-wrap">
+          🔔 Notifications <span class="nav-badge hidden" id="notif-count">0</span>
+          <div class="notif-panel" id="notif-panel">
+            <div class="loading-block"><span class="spinner spinner-dark"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="section-content">
+        <div class="loading-block"><span class="spinner spinner-dark"></span> Loading…</div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-bg" id="modal-bg">
+    <div class="modal" id="modal-content"></div>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 <strong>FUOYE Gist</strong>. Built for excellence.</p>
+    <p>Federal University Oye-Ekiti, Ekiti State, Nigeria</p>
+  </footer>
+
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>

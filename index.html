@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Legit Fuoye Update & Campus Vibes</title>
+  <meta name="description" content="Legit Fuoye Update & Campus Vibes — News, community, CBT practice for FUOYE students." />
+  <link rel="icon" href="logo/logo.jpg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ========== NAVBAR (always visible, no JS required) ========== -->
+  <nav class="navbar">
+    <a class="nav-brand" href="index.html">
+      <img src="logo/logo.jpg" alt="Logo" />
+      <span>Legit Fuoye</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="news.html">News</a></li>
+      <li><a href="community.html">Community</a></li>
+      <li><a href="cbt.html">CBT</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li id="nav-auth">
+        <a href="login.html" class="btn-green" style="padding:7px 16px">Login</a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- ========== HERO ========== -->
+  <header class="hero">
+    <img src="logo/logo.jpg" alt="Logo" class="logo" />
+    <h1>LEGIT FUOYE UPDATE &amp; CAMPUS VIBES</h1>
+    <p>Your #1 source for campus news, community vibes, and CBT practice — built for all students.</p>
+    <div style="margin-top:1.5rem;display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap">
+      <a href="news.html"      class="btn-green">📰 Read News</a>
+      <a href="community.html" class="btn-outline" style="background:#fff;color:#0f1419">💬 Join Community</a>
+      <a href="cbt.html"       class="btn-outline" style="background:#fff;color:#0f1419">📝 Practice CBT</a>
+    </div>
+  </header>
+
+  <!-- ========== QUICK LINKS ========== -->
+  <section class="container">
+    <div class="grid-3">
+      <a href="news.html" class="card" style="text-decoration:none;color:inherit">
+        <h3>📰 News</h3>
+        <p>Latest campus updates, announcements, and info.</p>
+      </a>
+      <a href="community.html" class="card" style="text-decoration:none;color:inherit">
+        <h3>💬 Community</h3>
+        <p>Share vibes, memes, questions — connect with other students.</p>
+      </a>
+      <a href="cbt.html" class="card" style="text-decoration:none;color:inherit">
+        <h3>📝 CBT Practice</h3>
+        <p>Practice past questions, level by level.</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- ========== LATEST NEWS ========== -->
+  <main class="container">
+    <div class="flex-between mb-2">
+      <h2 class="section-title mb-0">Latest News</h2>
+      <a href="news.html" style="font-size:.88rem;font-weight:600">See all →</a>
+    </div>
+    <div id="news-container">
+      <div class="card loading-block"><span class="spinner spinner-dark"></span> Loading news…</div>
+    </div>
+
+    <!-- ========== RECENT COMMUNITY ========== -->
+    <div class="flex-between mb-2 mt-2">
+      <h2 class="section-title mb-0">Recent Community Updates</h2>
+      <a href="community.html" style="font-size:.88rem;font-weight:600">See all →</a>
+    </div>
+    <div id="community-container">
+      <div class="card loading-block"><span class="spinner spinner-dark"></span> Loading updates…</div>
+    </div>
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer>
+    <p>&copy; 2026 <strong>FUOYE Gist</strong>. Built for excellence.</p>
+    <p>Federal University Oye-Ekiti, Ekiti State, Nigeria</p>
+    <p><a href="contact.html">📞 Contact Us</a></p>
+  </footer>
+
+  <!-- ========== SCRIPTS ========== -->
+  <script type="module">
+    import { supabase } from './js/supabase-client.js';
+    import { escapeHtml, timeAgo } from './js/main.js';
+
+    /* ---------- 1. Update Login button → Dashboard if logged in ---------- */
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: p } = await supabase.from('profiles')
+          .select('role').eq('id', user.id).single();
+        const dash = p?.role === 'admin' ? 'admin.html' : 'user.html';
+        document.getElementById('nav-auth').innerHTML =
+          `<a href="${dash}" class="btn-green" style="padding:7px 16px">Dashboard</a>`;
+      }
+    } catch (_) { /* not logged in — keep Login button */ }
+
+    /* ---------- 2. Load latest public news ---------- */
+    (async () => {
+      const box = document.getElementById('news-container');
+      try {
+        const { data, error } = await supabase
+          .from('news')
+          .select('*')
+          .eq('visibility', 'public')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (error) throw error;
+
+        if (!data || !data.length) {
+          box.innerHTML = `
+            <div class="card">
+              <div class="empty">
+                <h3>No news yet</h3>
+                <p>Check back soon for campus updates.</p>
+              </div>
+            </div>`;
+        } else {
+          box.innerHTML = data.map(n => `
+            <article class="card">
+              <h3>${escapeHtml(n.title)}</h3>
+              <p>${escapeHtml(n.content).replace(/\n/g, '<br>')}</p>
+              ${n.media_url ? `<img src="${escapeHtml(n.media_url)}" alt="" loading="lazy">` : ''}
+              <div class="card-meta mt-1">
+                <span>🕒 ${timeAgo(n.created_at)}</span>
+              </div>
+            </article>
+          `).join('');
+        }
+      } catch (e) {
+        box.innerHTML = `<div class="alert alert-error">Could not load news: ${escapeHtml(e.message)}</div>`;
+      }
+    })();
+
+    /* ---------- 3. Load recent community posts ---------- */
+    (async () => {
+      const box = document.getElementById('community-container');
+      try {
+        const { data, error } = await supabase
+          .from('community')
+          .select('*, profiles(username, profile_pic)')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (error) throw error;
+
+        if (!data || !data.length) {
+          box.innerHTML = `
+            <div class="card">
+              <div class="empty">
+                <h3>No community updates yet</h3>
+                <p>Log in to be the first to post.</p>
+              </div>
+            </div>`;
+        } else {
+          box.innerHTML = data.map(p => `
+            <article class="card">
+              <div class="card-meta">
+                <strong>${escapeHtml(p.profiles?.username || 'Anonymous')}</strong>
+                <span>· 🕒 ${timeAgo(p.created_at)}</span>
+              </div>
+              <h3 class="mt-1">${escapeHtml(p.title)}</h3>
+              <p>${escapeHtml(p.message).slice(0, 250)}${p.message.length > 250 ? '…' : ''}</p>
+              ${p.media_url ? `<img src="${escapeHtml(p.media_url)}" alt="" loading="lazy">` : ''}
+            </article>
+          `).join('');
+        }
+      } catch (e) {
+        box.innerHTML = `<div class="alert alert-error">Could not load community: ${escapeHtml(e.message)}</div>`;
+      }
+    })();
+  </script>
+</body>
+</html>

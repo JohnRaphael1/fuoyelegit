@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Legit Fuoye</title>
+  <link rel="icon" href="logo/logo.jpg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div class="logo-wrap">
+        <img src="logo/logo.jpg" alt="Logo" />
+      </div>
+
+      <div class="auth-tabs">
+        <button id="tab-user" class="active" data-tab="user">User Login</button>
+        <button id="tab-admin" data-tab="admin">Admin Login</button>
+      </div>
+
+      <div id="alert-box"></div>
+
+      <!-- USER LOGIN -->
+      <form id="user-form" autocomplete="on">
+        <div class="form-group">
+          <label for="user-email">Email</label>
+          <input id="user-email" type="email" required placeholder="you@example.com" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="user-password">Password</label>
+          <input id="user-password" type="password" required placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <button class="btn-green btn-block" id="user-submit" type="submit">Login</button>
+
+        <p class="text-center mt-2" style="font-size:.88rem">
+          <a href="#" id="forgot-link">Forgotten password?</a>
+        </p>
+        <p class="text-center text-muted" style="font-size:.86rem; margin-top:.5rem">
+          Need an account? <a href="contact.html">Contact Admin</a>
+        </p>
+      </form>
+
+      <!-- ADMIN LOGIN -->
+      <form id="admin-form" style="display:none" autocomplete="off">
+        <div class="form-group">
+          <label for="admin-id">Admin ID</label>
+          <input id="admin-id" type="text" required placeholder="••••••••" />
+        </div>
+        <div class="form-group">
+          <label for="admin-password">Password</label>
+          <input id="admin-password" type="password" required placeholder="••••••••" />
+        </div>
+        <button class="btn-green btn-block" id="admin-submit" type="submit">Login as Admin</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from './js/supabase-client.js';
+    import { userLogin, adminLogin } from './js/auth.js';
+    import { escapeHtml } from './js/main.js';
+
+    /* ── Redirect if already logged in ── */
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: p } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+      location.href = p?.role === 'admin' ? 'admin.html' : 'user.html';
+    }
+
+    /* ── Tab switching ── */
+    const tabs = document.querySelectorAll('.auth-tabs button');
+    const userForm = document.getElementById('user-form');
+    const adminForm = document.getElementById('admin-form');
+    const alertBox = document.getElementById('alert-box');
+
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      const isUser = t.dataset.tab === 'user';
+      userForm.style.display = isUser ? 'block' : 'none';
+      adminForm.style.display = isUser ? 'none' : 'block';
+      alertBox.innerHTML = '';
+    }));
+
+    const showAlert = (msg, type = 'error') => {
+      alertBox.innerHTML = `<div class="alert alert-${type}">${escapeHtml(msg)}</div>`;
+    };
+
+    /* ── USER LOGIN ── */
+    userForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const btn = document.getElementById('user-submit');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Logging in…';
+      try {
+        await userLogin(
+          document.getElementById('user-email').value.trim(),
+          document.getElementById('user-password').value
+        );
+        location.href = 'user.html';
+      } catch (err) {
+        showAlert(err.message || 'Login failed');
+        btn.disabled = false;
+        btn.textContent = 'Login';
+      }
+    });
+
+    /* ── ADMIN LOGIN ── */
+    adminForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const btn = document.getElementById('admin-submit');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Logging in…';
+      try {
+        await adminLogin(
+          document.getElementById('admin-id').value.trim(),
+          document.getElementById('admin-password').value
+        );
+        location.href = 'admin.html';
+      } catch (err) {
+        showAlert(err.message || 'Admin login failed');
+        btn.disabled = false;
+        btn.textContent = 'Login as Admin';
+      }
+    });
+
+    /* ── FORGOT PASSWORD → notify admin ── */
+    document.getElementById('forgot-link').addEventListener('click', async e => {
+      e.preventDefault();
+      const email = document.getElementById('user-email').value.trim();
+      if (!email) {
+        return showAlert('Enter your email above first, then click "Forgotten password?"');
+      }
+
+      // Verify the email actually exists in profiles? We can't (no RLS access to auth.users).
+      // We just insert a notification. RLS allows anon inserts for this case.
+      try {
+        const { error } = await supabase.from('notifications').insert({
+          user_id: null,
+          message: `Password reset requested by: ${email}`,
+        });
+        if (error) throw error;
+        showAlert(
+          'Your request has been sent to the admin. Please wait to be contacted on WhatsApp.',
+          'success'
+        );
+        document.getElementById('user-email').value = '';
+      } catch (err) {
+        // If insert fails due to RLS, fall back to showing the WhatsApp link
+        showAlert(
+          'Could not send the automatic request. Please contact the admin directly on WhatsApp.',
+          'warn'
+        );
+        console.warn('Notification insert failed:', err.message);
+      }
+    });
+  </script>
+</body>
+</html>

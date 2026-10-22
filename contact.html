@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact — Legit Fuoye</title>
+  <link rel="icon" href="logo/logo.jpg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <a class="nav-brand" href="index.html">
+      <img src="logo/logo.jpg" alt="Logo"><span>Legit Fuoye</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="news.html">News</a></li>
+      <li><a href="community.html">Community</a></li>
+      <li><a href="cbt.html">CBT</a></li>
+      <li><a href="contact.html" class="active">Contact</a></li>
+      <li id="nav-auth"><a href="login.html" class="btn-green" style="padding:7px 16px">Login</a></li>
+    </ul>
+  </nav>
+
+  <main class="container container-narrow">
+    <div class="page-header">
+      <h1>📞 Contact Us</h1>
+    </div>
+
+    <div class="card mb-2">
+      <h3 class="mb-1">Need help?</h3>
+      <p class="text-muted">
+        Tap any number below to chat on WhatsApp. This is how you request an account, report an issue, or reach the admin.
+      </p>
+    </div>
+
+    <div id="contact-list">
+      <div class="card loading-block"><span class="spinner spinner-dark"></span> Loading…</div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 <strong>FUOYE Gist</strong>. Built for excellence.</p>
+    <p>Federal University Oye-Ekiti, Ekiti State, Nigeria</p>
+  </footer>
+
+  <script type="module">
+    import { supabase } from './js/supabase-client.js';
+    import { escapeHtml } from './js/main.js';
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: p } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        const dash = p?.role === 'admin' ? 'admin.html' : 'user.html';
+        document.getElementById('nav-auth').innerHTML =
+          `<a href="${dash}" class="btn-green" style="padding:7px 16px">Dashboard</a>`;
+      }
+    } catch (_) {}
+
+    const { data: contacts, error } = await supabase
+      .from('contacts').select('*').eq('is_private', false).order('id');
+
+    const box = document.getElementById('contact-list');
+    if (error) {
+      box.innerHTML = `<div class="alert alert-error">${escapeHtml(error.message)}</div>`;
+    } else if (!contacts?.length) {
+      box.innerHTML = `<div class="card"><div class="empty"><h3>No contact numbers yet</h3>
+        <p>Check back soon, or try again later.</p></div></div>`;
+    } else {
+      box.innerHTML = contacts.map(c => {
+        const cleaned = c.phone_number.replace(/[^\d]/g, '');
+        return `
+          <a href="https://wa.me/${cleaned}" target="_blank" rel="noopener"
+             class="card" style="display:block;text-decoration:none;color:inherit">
+            <div class="flex-between">
+              <div>
+                <h3 class="mb-0">💬 WhatsApp</h3>
+                <p class="text-muted mb-0">${escapeHtml(c.phone_number)}</p>
+              </div>
+              <span class="btn-green btn-sm">Chat →</span>
+            </div>
+          </a>`;
+      }).join('');
+    }
+  </script>
+</body>
+</html>
