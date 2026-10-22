@@ -77,7 +77,7 @@ navLinks.forEach(a => a.addEventListener('click', async e => {
 }));
 
 /* ============================================================
-   PROFILE
+   PROFILE (with Change Password)
 ============================================================ */
 async function renderProfile() {
   const { data: p, error } = await supabase.from('profiles').select('*').eq('id', me.id).single();
@@ -111,7 +111,32 @@ async function renderProfile() {
         <button class="btn-green" type="submit" id="pf-save">Save Profile</button>
       </form>
     </div>
+
+    <div class="card mt-2">
+      <h3 class="mb-2">🔒 Change Password</h3>
+      <p class="text-muted mb-2" style="font-size:.88rem">
+        Your password is used to log in with your Admin ID. Keep it strong and private.
+      </p>
+      <form id="pw-form">
+        <div class="form-group">
+          <label>Current password</label>
+          <input type="password" id="pw-current" required autocomplete="current-password" placeholder="Enter your current password">
+        </div>
+        <div class="form-group">
+          <label>New password</label>
+          <input type="password" id="pw-new" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters">
+        </div>
+        <div class="form-group">
+          <label>Confirm new password</label>
+          <input type="password" id="pw-confirm" required minlength="8" autocomplete="new-password" placeholder="Re-enter new password">
+        </div>
+        <button class="btn-green" type="submit" id="pw-save">Update Password</button>
+        <div id="pw-result" class="mt-2"></div>
+      </form>
+    </div>
   `;
+
+  /* ── Profile save ── */
   document.getElementById('profile-form').addEventListener('submit', async e => {
     e.preventDefault();
     const btn = document.getElementById('pf-save');
@@ -129,6 +154,54 @@ async function renderProfile() {
     } catch (err) {
       toast(err.message, 'error');
       btn.disabled = false; btn.textContent = 'Save Profile';
+    }
+  });
+
+  /* ── Password change ── */
+  document.getElementById('pw-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn     = document.getElementById('pw-save');
+    const result  = document.getElementById('pw-result');
+    const current = document.getElementById('pw-current').value;
+    const next    = document.getElementById('pw-new').value;
+    const confirm = document.getElementById('pw-confirm').value;
+
+    result.innerHTML = '';
+
+    if (next !== confirm) {
+      result.innerHTML = `<div class="alert alert-error">New passwords don't match.</div>`;
+      return;
+    }
+    if (next.length < 8) {
+      result.innerHTML = `<div class="alert alert-error">Password must be at least 8 characters.</div>`;
+      return;
+    }
+    if (next === current) {
+      result.innerHTML = `<div class="alert alert-error">New password must be different from your current one.</div>`;
+      return;
+    }
+
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Updating…';
+
+    try {
+      // 1. Verify the current password is correct by re-authenticating
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        email: me.email,
+        password: current,
+      });
+      if (signInErr) throw new Error('Current password is incorrect.');
+
+      // 2. Update the password
+      const { error: updErr } = await supabase.auth.updateUser({ password: next });
+      if (updErr) throw updErr;
+
+      result.innerHTML = `<div class="alert alert-success">✅ Password updated successfully. Use it next time you log in.</div>`;
+      document.getElementById('pw-form').reset();
+      toast('Password changed');
+    } catch (err) {
+      result.innerHTML = `<div class="alert alert-error">${escapeHtml(err.message)}</div>`;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Update Password';
     }
   });
 }
@@ -660,7 +733,6 @@ async function renderContacts() {
    NOTIFICATIONS BELL
 ============================================================ */
 async function refreshNotifications() {
-  // Fetch only notifications the admin can see (RLS allows all)
   const { data, error } = await supabase
     .from('notifications')
     .select('*')
@@ -693,7 +765,6 @@ async function refreshNotifications() {
 }
 
 async function markAllNotificationsRead() {
-  // Update only unread ones — RLS allows admin to update all notifications
   const { error } = await supabase
     .from('notifications')
     .update({ is_read: true })
